@@ -1,0 +1,27 @@
+@import "../../../index.less";
+@import "../index.less";
+
+.form-input {
+  font-size: 16px;
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  outline: none;
+  border: none;
+  box-shadow: @normal-input-shadow;
+  transition: box-shadow 200ms cubic-bezier(0.4,0.0,0.2,1);
+  font-family: @open-sans;
+}
+
+.form-input:hover {
+  box-shadow: @hover-input-shadow;
+}
+
+.form-input:focus {
+  box-shadow: @focus-input-shadow;
+}
+
+.form-input::placeholder {
+  color: @light-gray;
+  font-family: @open-sans;
+}

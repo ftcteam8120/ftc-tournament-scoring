@@ -1,0 +1,44 @@
+@import "../../../index.less";
+@import "../index.less";
+
+.form-button {
+  font-size: 16px;
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  outline: none;
+  border: none;
+  box-shadow: @normal-input-shadow;
+  transition: box-shadow 200ms cubic-bezier(0.4,0.0,0.2,1);
+  font-family: @open-sans;
+  cursor: pointer;
+
+  &.red-button {
+    color: white;
+    background-color: @first-red;
+  }
+  
+  &.blue-button {
+    color: white;
+    background-color: @first-blue;
+  }
+  
+  &.green-button {
+    color: white;
+    background-color: @primary-green;
+  }
+
+  &.twitter-blue-button {
+    color: white;
+    background-color: #00aced;
+  }
+
+  &.google-red-button {
+    color: white;
+    background-color: #db3236;
+  }
+}
+
+.form-button:hover {
+  box-shadow: @hover-input-shadow;
+}
