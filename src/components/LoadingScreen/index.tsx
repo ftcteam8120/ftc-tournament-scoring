@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
 import { bindActionCreators, Action } from 'redux';
 import { auth } from '../../core';
 
@@ -36,7 +37,7 @@ class LoadingScreen extends Component<LoadingScreenProps, LoadingScreenState> {
 
 }
 
-const mapStateToProps = (state: RootState) => ({
+const mapStateToProps = (state) => ({
   loading: state.auth.loading
 });
 

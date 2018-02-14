@@ -1,6 +1,7 @@
 // Import the base Component class from React
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
+import { withRouter } from 'react-router';
 // Import the connector to connect React and Redux
 import { connect } from 'react-redux';
 import { bindActionCreators, Action } from 'redux';
@@ -48,7 +49,7 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 // Export the final connected class
-export default connect(
+export default withRouter(connect(
   mapStateToProps,
   mapDispatchToProps
-)(App);
+)(App) as any);
