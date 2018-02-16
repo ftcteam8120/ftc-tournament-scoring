@@ -8,12 +8,13 @@ export const SET_REFRESH_INTERVAL = 'SET_REFRESH_INTERVAL';
 export const SET_SCORING_SOFTWARE_URL = 'SET_SCORING_SOFTWARE_URL';
 export const SET_EVENT_ID = 'SET_EVENT_ID';
 export const STOP_SYNC = 'STOP_SYNC';
+export const SET_TIMEOUT = 'SET_TIMEOUT';
 
 import Scoring from '../../scoring';
 
 import { store, client } from '../../index';
 
-export function initialSync(): any {
+/*export function initialSync(): any {
   let scoring = new Scoring(
     client,
     store.getState().sync.event_id,
@@ -36,7 +37,7 @@ export function initialSync(): any {
       });
     })
   }
-}
+}*/
 
 export function sync(): any {
   let scoring = new Scoring(
@@ -54,9 +55,13 @@ export function sync(): any {
         matches: result.matches
       });
       if (store.getState().sync.syncing) {
-        setTimeout(() => {
+        let timeout = setTimeout(() => {
           store.dispatch(sync())
         }, store.getState().sync.refresh_interval);
+        dispatch({
+          type: SET_TIMEOUT,
+          timeout
+        });
       }
     }).catch((error) => {
       console.error(error);
@@ -74,9 +79,16 @@ export function sync(): any {
 }
 
 export function stopSync() {
-  return {
-    type: STOP_SYNC
-  };
+  return function (dispatch) {
+    clearTimeout(store.getState().sync.timeout);
+    dispatch({
+      type: SET_TIMEOUT,
+      timeout: null
+    });
+    dispatch({
+      type: STOP_SYNC
+    });
+  }
 }
 
 export function setEventId(id: string) {

@@ -8,11 +8,12 @@ import {
   SET_REFRESH_INTERVAL,
   SET_SCORING_SOFTWARE_URL,
   SET_EVENT_ID,
-  INITIAL_SYNC_ERROR
+  INITIAL_SYNC_ERROR,
+  SET_TIMEOUT
 } from '../actions/sync';
 // Define the types for the auth state
 export interface SyncState {
-  initialized: boolean;
+  // initialized: boolean;
   event_id: string;
   scoring_software_url: string;
   syncing: boolean;
@@ -23,11 +24,12 @@ export interface SyncState {
   last_sync: any;
   retries: number;
   refresh_interval: number;
+  timeout: any;
 }
 // Define the initial state for the reducer if no state is provided
 export const initialState: SyncState = {
-  initialized: false,
-  event_id: null,
+  // initialized: false,
+  event_id: '',
   scoring_software_url: 'http://localhost:8080/',
   syncing: false,
   teams: [],
@@ -36,7 +38,8 @@ export const initialState: SyncState = {
   sync_error: null,
   last_sync: null,
   retries: 0,
-  refresh_interval: 30000
+  refresh_interval: 30000,
+  timeout: null
 };
 
 // Export the reducer function
@@ -52,7 +55,7 @@ export function sync(state: SyncState = initialState, action: any): SyncState {
         ...state,
         syncing: false
       };
-    case INITIAL_SYNC:
+    /*case INITIAL_SYNC:
       return {
         ...state,
         syncing: true
@@ -71,7 +74,7 @@ export function sync(state: SyncState = initialState, action: any): SyncState {
         ...state,
         syncing: false,
         sync_error: action.error
-      };
+      };*/
     case SYNC_DATA_SUCCESS:
       return {
         ...state,
@@ -100,6 +103,11 @@ export function sync(state: SyncState = initialState, action: any): SyncState {
       return {
         ...state,
         event_id: action.id
+      };
+    case SET_TIMEOUT:
+      return {
+        ...state,
+        timeout: action.timeout
       };
     default:
       // Return the state if no action is not defined

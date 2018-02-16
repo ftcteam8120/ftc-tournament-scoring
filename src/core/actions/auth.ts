@@ -17,6 +17,7 @@ export enum AuthError {
 
 // Trigger this action on auth success
 export function authSuccess(user: any, token: string): any {
+  user.id = user._id;
   return {
     type: AUTH_SUCCESS,
     user,
@@ -74,7 +75,7 @@ export function login(username: string, password: string): any {
       body: {
         username,
         password
-      }
+      } as any
     }, false /* Do not extract the data */).then((raw: any) => {
       // Set the token in the localStorage
       window.localStorage.token = raw.token;

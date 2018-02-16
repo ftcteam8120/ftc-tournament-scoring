@@ -1,0 +1,32 @@
+patch-package
+--- a/node_modules/graphql-anywhere/src/graphql.ts
++++ b/node_modules/graphql-anywhere/src/graphql.ts
+@@ -1,10 +1,8 @@
+-import {
+-  DocumentNode,
+-  SelectionSetNode,
+-  FieldNode,
+-  FragmentDefinitionNode,
+-  InlineFragmentNode,
+-} from 'graphql';
++type DocumentNode = any;
++type SelectionSetNode = any;
++type FieldNode = any;
++type FragmentDefinitionNode = any;
++type InlineFragmentNode = any;
+ 
+ import {
+   getMainDefinition,
+@@ -145,10 +143,10 @@ function executeSelectionSet(
+         fragment = selection;
+       } else {
+         // This is a named fragment
+-        fragment = fragmentMap[selection.name.value];
++        fragment = fragmentMap[(selection as any).name.value];
+ 
+         if (!fragment) {
+-          throw new Error(`No fragment named ${selection.name.value}`);
++          throw new Error(`No fragment named ${(selection as any).name.value}`);
+         }
+       }
+ 

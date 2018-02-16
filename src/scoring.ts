@@ -10,6 +10,8 @@ import unescape from 'unescape';
 import gql from 'graphql-tag';
 bluebird.promisifyAll(prompt);
 
+import { MatchType, Winner, Match } from './core/types';
+
 const TeamsMutation = gql`
   mutation TeamsMutation($event: String!, $teams: [SyncTeamInput]) {
     syncTeamsWithEvent(event: $event, teams: $teams) {
@@ -162,7 +164,11 @@ export default class Scoring {
     return result;
   }
 
-  public async loadTeams(): Promise<any[]> {
+  private getUrl(page: string): string {
+    return (this.scoringSoftwareUrl + page);
+  }
+
+  /*public async loadTeams(): Promise<any[]> {
     return this.fetchTableData(this.scoringSoftwareUrl + 'TeamList').then(data => {
       return this.standardParse(data, [
         'number',
@@ -173,7 +179,7 @@ export default class Scoring {
         'country'
       ]);
     });
-  }
+  }*/
   
   /*public async loadMatches() {
     return fetch(this.scoringSoftwareUrl + 'MatchList').then(res => res.text()).then(body => {
@@ -226,8 +232,8 @@ export default class Scoring {
     });
   }*/
   
-  public async loadMatches() {
-    return fetch(this.scoringSoftwareUrl + 'MatchDetails').then(res => res.text()).then(body => {
+  public async loadMatches(): Promise<Match[]> {
+    return fetch(this.getUrl('MatchDetails')).then(res => res.text()).then(body => {
       let data = this.getTableData(body);
       let matches = [];
       for (var i = 0; i < data.length; i++) {
@@ -315,21 +321,27 @@ export default class Scoring {
             if (!matches[j - 2].blue_alliance.teams) {
               matches[j - 2].blue_alliance.teams = [];
             }
+            if (!matches[j - 2].red_alliance.surrogates) {
+              matches[j - 2].red_alliance.surrogates = [];
+            }
+            if (!matches[j - 2].blue_alliance.surrogates) {
+              matches[j - 2].blue_alliance.surrogates = [];
+            }
             if (fieldName === 'number') {
               let values = data[i][j].split('-');
               this.set(matches[j - 2], 'number', values[1]);
               let type;
               switch (values[0]) {
                 case 'F': {
-                  type = 'FINAL';
+                  type = MatchType.FINAL;
                   break;
                 }
                 case 'Q': {
-                  type = 'QUALIFYING';
+                  type = MatchType.QUALIFYING;
                   break;
                 }
                 case 'SF': {
-                  type = 'SEMIFINAL';
+                  type = MatchType.SEMIFINAL;
                   break;
                 }
               }
@@ -341,24 +353,41 @@ export default class Scoring {
               let winner;
               switch (data[i][j].split(' ')[1]) {
                 case 'R':
-                  winner = 'RED';
+                  winner = Winner.RED;
                   break;
                 case 'B':
-                  winner = 'BLUE';
+                  winner = Winner.BLUE;
                   break;
                 default:
-                  winner = 'TIE';
+                  winner = Winner.TIE;
                   break;
               }
               this.set(matches[j - 2], fieldName, winner);
             } else if (fieldName === 'red_teams') {
-              let teams = data[i][j].split(' ');
-              if (teams[0]) this.set(matches[j - 2], 'red_alliance.teams.0', teams[0]);
+              if (data[i][j] !== '&#xA0;') {
+                let teams = data[i][j].split(' ');
+                for (let i = 0; i < teams.length; i++) {
+                  if (teams[i].indexOf('*') > -1) {
+                    matches[j - 2].red_alliance.surrogates.push(parseInt(teams[i].replace('*', '')));
+                  } else if (teams[i]) {
+                    matches[j - 2].red_alliance.teams.push(parseInt(teams[i]));
+                  }
+                }
+              }
+              /*if (teams[0]) this.set(matches[j - 2], 'red_alliance.teams.0', teams[0]);
               if (teams[1]) this.set(matches[j - 2], 'red_alliance.teams.1', teams[1]);
+              if (teams[2]) this.set(matches[j - 2], 'red_alliance.teams.2', teams[2]);*/
             } else if (fieldName === 'blue_teams') {
-              let teams = data[i][j].split(' ');
-              if (teams[0]) this.set(matches[j - 2], 'blue_alliance.teams.0', teams[0]);
-              if (teams[1]) this.set(matches[j - 2], 'blue_alliance.teams.1', teams[1]);
+              if (data[i][j] !== '&#xA0;') {
+                let teams = data[i][j].split(' ');
+                for (let i = 0; i < teams.length; i++) {
+                  if (teams[i].indexOf('*') > -1) {
+                    matches[j - 2].blue_alliance.surrogates.push(parseInt(teams[i].replace('*', '')));
+                  } else if (teams[i] !== '') {
+                    matches[j - 2].blue_alliance.teams.push(parseInt(teams[i]));
+                  }
+                }
+              }
             } else {
               this.set(matches[j - 2], fieldName, data[i][j]);
             }
@@ -370,7 +399,7 @@ export default class Scoring {
   }
   
   public async loadRankings() {
-    return fetch(this.scoringSoftwareUrl + 'Rankings').then(res => res.text()).then(body => {
+    return fetch(this.getUrl('Rankings')).then(res => res.text()).then(body => {
       let data = this.getTableData(body);
       return this.standardParse(data, [
         'rank',
@@ -405,53 +434,14 @@ export default class Scoring {
       });
     }));
     return Promise.all(promises).then((results) => {
-      console.log('Syncronized data');
+      console.log('Syncronized data', new Date(Date.now()).toISOString());
       return {
         rankings: results[0].data.syncRankingsWithEvent.rankings,
         matches: results[1].data.syncMatchesWithEvent
       };
-      /*if (cont)
-        setTimeout(() => this.refresh(true), this.refreshRate);*/
     }).catch(error => {
       console.error(error);
-      /*console.log('Request(s) failed, retrying');
-      if (this.attempts < 10 && cont) {
-        setTimeout(() => this.refresh(true), this.refreshRate);
-        this.attempts++;
-      } else {
-        console.log('Max reconnection attempts reached, shutting down :(');
-        process.exit(1);
-      }*/
     });
-  }
-
-  public async load() {
-    let promises = [];
-    promises.push(this.loadTeams().then(result => {
-      return this.client.mutate({
-        mutation: TeamsMutation,
-        variables: {
-          event: this.eventId,
-          teams: result
-        }
-      });
-    }));
-    promises.push(this.loadMatches().then(result => {
-      return this.client.mutate({
-        mutation: MatchesMutation,
-        variables: {
-          event: this.eventId,
-          matches: result
-        }
-      });
-    }));
-    return Promise.all(promises).then((results) => {
-      console.log('Teams and Matches Syncronized');
-      return {
-        teams: results[0].data.syncTeamsWithEvent,
-        matches: results[1].data.syncMatchesWithEvent
-      };
-    });
-  }    
+  }  
 
 }

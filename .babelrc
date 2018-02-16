@@ -1,0 +1,5 @@
+{
+  "presets": ["es2017", "stage-0", "react"],
+  "sourceMaps": true,
+  "plugins": ["react-hot-loader/babel", "emotion"]
+}
